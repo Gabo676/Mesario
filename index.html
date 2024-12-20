@@ -1,0 +1,605 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,user-scalable=no" />
+  <title>3D Carousel</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+    }
+
+    html,
+    body {
+      height: 100%;
+      /* for touch screen */
+      touch-action: none;
+    }
+
+    body {
+      overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      background: linear-gradient(45deg, #ff9a9e 0%, #fad0c4 99%, #fad0c4 100%);
+      -webkit-perspective: 1000px;
+      perspective: 1000px;
+      -webkit-transform-style: preserve-3d;
+      transform-style: preserve-3d;
+    }
+
+    .page-header {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      z-index: 1000;
+      text-align: center;
+      padding: 20px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+    }
+    
+    .page-header h1 {
+      font-family: 'Helvetica', cursive;
+      color: #ff1493;
+      font-size: 2.5em;
+      margin: 10px auto;
+      text-align: center;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+      animation: fadeInDown 1.5s ease-out;
+      width: 100%;
+    }
+    
+    .subtitle {
+      font-family: 'Helvetica', sans-serif;
+      color: #ff69b4;
+      font-size: 1.2em;
+      margin: 10px auto;
+      text-align: center;
+      animation: fadeInUp 1.5s ease-out;
+      width: 100%;
+    }
+    
+    .hearts {
+      font-size: 1.5em;
+      margin: 10px auto;
+      text-align: center;
+      width: 100%;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes fadeInDown {
+      from {
+        opacity: 0;
+        transform: translateY(-20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes fadeInUp {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @keyframes pulse {
+      0% {
+        transform: scale(1);
+      }
+
+      50% {
+        transform: scale(1.1);
+      }
+
+      100% {
+        transform: scale(1);
+      }
+    }
+
+    @media screen and (max-width: 768px) {
+      .page-header h1 {
+        font-size: 1.8em;
+      }
+
+      .subtitle {
+        font-size: 1em;
+      }
+
+      .hearts {
+        font-size: 1.2em;
+      }
+    }
+
+    @media screen and (max-width: 768px) {
+
+      #drag-container,
+      #spin-container {
+        transform: scale(0.7) rotateX(-10deg);
+      }
+
+      #ground {
+        width: 100vw;
+        height: 100vw;
+      }
+
+      .love-letter {
+        position: fixed;
+        bottom: 10px;
+        right: 10px;
+        width: 80%;
+        max-width: 300px;
+        padding: 15px;
+        font-size: 14px;
+      }
+
+      .letter-content h2 {
+        font-size: 20px;
+      }
+
+      .letter-content p {
+        font-size: 12px;
+      }
+
+      #drag-container img,
+      #drag-container video {
+        width: 80px;
+        /* Reduce el tamaño de imágenes */
+        height: 120px;
+      }
+
+      /* Ajusta el radio del carrusel */
+      :root {
+        --radius: 180px;
+        /* Menor radio para móviles */
+      }
+    }
+
+    @media screen and (max-width: 480px) {
+
+      #drag-container,
+      #spin-container {
+        transform: scale(0.5) rotateX(-10deg);
+      }
+
+      #drag-container img,
+      #drag-container video {
+        width: 70px;
+        height: 100px;
+      }
+
+      #drag-container p {
+        font-size: 18px;
+      }
+
+      .love-letter {
+        bottom: 5px;
+        right: 5px;
+        width: 90%;
+        padding: 10px;
+      }
+    }
+
+    /* Orientación landscape */
+    @media screen and (max-height: 480px) {
+      .love-letter {
+        display: none;
+        /* Oculta la carta en landscape */
+      }
+
+      #drag-container,
+      #spin-container {
+        transform: scale(0.4) rotateX(-10deg);
+      }
+    }
+
+    #drag-container,
+    #spin-container {
+      position: relative;
+      display: -webkit-box;
+      display: -ms-flexbox;
+      display: flex;
+      margin: auto;
+      -webkit-transform-style: preserve-3d;
+      transform-style: preserve-3d;
+      -webkit-transform: rotateX(-10deg);
+      transform: rotateX(-10deg);
+    }
+
+    #drag-container img,
+    #drag-container video {
+      -webkit-transform-style: preserve-3d;
+      transform-style: preserve-3d;
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      line-height: 200px;
+      font-size: 50px;
+      text-align: center;
+      -webkit-box-shadow: 0 0 8px #fff;
+      box-shadow: 0 0 15px rgba(255, 182, 193, 0.8);
+      /* Sombra rosa suave */
+      -webkit-box-reflect: below 10px linear-gradient(transparent, transparent, rgba(255, 192, 203, 0.2));
+      /* Reflejo con tono rosa */
+      border: 3px solid rgba(255, 255, 255, 0.8);
+      /* Borde blanco suave */
+      border-radius: 10px;
+      /* Esquinas redondeadas */
+    }
+
+    #drag-container img:hover,
+    #drag-container video:hover {
+      -webkit-box-shadow: 0 0 15px #fffd;
+      box-shadow: 0 0 20px rgba(255, 105, 180, 0.9);
+      /* Sombra rosa más intensa al hover */
+      transform: scale(1.05);
+      /* Ligero zoom al hover */
+      transition: all 0.3s ease;
+      -webkit-box-reflect: below 10px linear-gradient(transparent, transparent, #0007);
+    }
+
+    #drag-container p {
+      font-family: 'Helvetica', cursive;
+      color: #ff69b4;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      -webkit-transform: translate(-50%, -50%) rotateX(90deg);
+      transform: translate(-50%, -50%) rotateX(90deg);
+      white-space: nowrap;
+      animation: pulseText 2s infinite;
+    }
+
+    #ground {
+      width: 900px;
+      height: 900px;
+      position: absolute;
+      top: 100%;
+      left: 50%;
+      -webkit-transform: translate(-50%, -50%) rotateX(90deg);
+      transform: translate(-50%, -50%) rotateX(90deg);
+      background: radial-gradient(circle at center,
+          rgba(255, 192, 203, 0.4) 0%,
+          transparent 70%);
+      /* Ground effect con tono rosa suave */
+    }
+
+    #music-container {
+      position: absolute;
+      top: 0;
+      left: 0;
+    }
+
+    .love-letter {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      width: 300px;
+      padding: 20px;
+      background: rgba(255, 255, 255, 0.95);
+      border-radius: 15px;
+      box-shadow: 0 0 20px rgba(255, 105, 180, 0.3);
+      animation: fadeIn 1s ease-in;
+      z-index: 1000;
+    }
+
+    .letter-content {
+      text-align: center;
+      color: #ff477e;
+    }
+
+    .letter-content h2 {
+      font-family: 'Helvetica', cursive;
+      margin-bottom: 15px;
+      color: #ff1493;
+    }
+
+    .letter-content p {
+      font-size: 14px;
+      line-height: 1.6;
+      margin-bottom: 15px;
+      font-family: 'Helvetica', sans-serif;
+    }
+
+    .signature {
+      font-style: italic;
+      margin-top: 20px;
+      font-size: 16px;
+    }
+
+    .signature span {
+      font-size: 18px;
+      font-weight: bold;
+      color: #ff1493;
+    }
+
+    .love-letter:hover {
+      transform: scale(1.02);
+      transition: transform 0.3s ease;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(20px);
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+
+
+    @keyframes pulseText {
+      0% {
+        transform: translate(-50%, -50%) rotateX(90deg) scale(1);
+      }
+
+      50% {
+        transform: translate(-50%, -50%) rotateX(90deg) scale(1.1);
+      }
+
+      100% {
+        transform: translate(-50%, -50%) rotateX(90deg) scale(1);
+      }
+    }
+
+    @-webkit-keyframes spin {
+      from {
+        -webkit-transform: rotateY(0deg);
+        transform: rotateY(0deg);
+      }
+
+      to {
+        -webkit-transform: rotateY(360deg);
+        transform: rotateY(360deg);
+      }
+    }
+
+    @keyframes spin {
+      from {
+        -webkit-transform: rotateY(0deg);
+        transform: rotateY(0deg);
+      }
+
+      to {
+        -webkit-transform: rotateY(360deg);
+        transform: rotateY(360deg);
+      }
+    }
+
+    @-webkit-keyframes spinRevert {
+      from {
+        -webkit-transform: rotateY(360deg);
+        transform: rotateY(360deg);
+      }
+
+      to {
+        -webkit-transform: rotateY(0deg);
+        transform: rotateY(0deg);
+      }
+    }
+
+    @keyframes spinRevert {
+      from {
+        -webkit-transform: rotateY(360deg);
+        transform: rotateY(360deg);
+      }
+
+      to {
+        -webkit-transform: rotateY(0deg);
+        transform: rotateY(0deg);
+      }
+    }
+  </style>
+</head>
+
+<body>
+
+  <div class="page-header">
+    <div class="hearts">
+      💙 💖 💙
+    </div>
+    <h1>Para mi Bubu</h1>
+    <div class="subtitle">Gracias por todo</div>
+    <div class="hearts">
+      ❤️ 💖 ❤️
+    </div>
+  </div>
+  <div id="drag-container">
+    <div id="spin-container">
+
+      <img src="./src/1.jpg" alt="" />
+      <img src="./src/2.jpg" alt="" />
+      <img src="./src/3.jpg" alt="" />
+      <img src="./src/6.jpg" alt="" />
+      <img src="./src/7.jpg" alt="" />
+      <img src="./src/8.jpg" alt="" />
+
+      <!-- Example image with link -->
+      <img src="./src/10.jpg" alt="" />
+      <img src="./src/11.jpg" alt="" />
+      <img src="./src/12.jpg" alt="" />
+
+            <video controls autoplay="autoplay" loop>
+          <source src="./src/video1.mp4" type="video/mp4">
+      </video>
+
+      <p style="font-family: 'Helvetica', cursive; font-size: 24px;">
+        💙 20 Meses Juntos Mi Amor ❤️
+        <br>
+        <span style="font-size: 16px; color: #ff477e;">
+          Cada momento contigo es mágico
+        </span>
+      </p>
+    </div>
+    <div id="ground"></div>
+  </div>
+
+  <div class="love-letter">
+    <div class="letter-content">
+      <h2>✨ Mi Amor ✨</h2>
+      <p>
+        Han pasado 20 maravillosos meses desde que empezamos esta hermosa historia juntos.
+        Cada día a tu lado ha sido una aventura única y especial.
+      </p>
+      <p>
+        Gracias por compartir tantos momentos inolvidables conmigo, por tu sonrisa que
+        ilumina mis días y por hacer que mi corazón lata más fuerte cuando estoy contigo.
+      </p>
+      <p class="signature">
+        Con todo mi amor ❤️<br>
+        <span>Tu amor</span>
+      </p>
+    </div>
+  </div>
+
+
+  <script>
+
+    var radius = 240;
+    var autoRotate = true;
+    var rotateSpeed = -60;
+    var imgWidth = 120;
+    var imgHeight = 160;
+
+    var bgMusicURL =
+      "https://api.soundcloud.com/tracks/143041228/stream?client_id=587aa2d384f7333a886010d5f52f302a";
+    var bgMusicControls = true;
+
+
+    setTimeout(init, 100);
+
+    var odrag = document.getElementById("drag-container");
+    var ospin = document.getElementById("spin-container");
+    var aImg = ospin.getElementsByTagName("img");
+    var aVid = ospin.getElementsByTagName("video");
+    var aEle = [...aImg, ...aVid];
+
+    ospin.style.width = imgWidth + "px";
+    ospin.style.height = imgHeight + "px";
+
+    var ground = document.getElementById("ground");
+    ground.style.width = radius * 3 + "px";
+    ground.style.height = radius * 3 + "px";
+
+    function init(delayTime) {
+      for (var i = 0; i < aEle.length; i++) {
+        aEle[i].style.transform =
+          "rotateY(" +
+          i * (360 / aEle.length) +
+          "deg) translateZ(" +
+          radius +
+          "px)";
+        aEle[i].style.transition = "transform 1s";
+        aEle[i].style.transitionDelay =
+          delayTime || (aEle.length - i) / 4 + "s";
+      }
+    }
+
+    function applyTranform(obj) {
+      if (tY > 180) tY = 180;
+      if (tY < 0) tY = 0;
+
+      obj.style.transform = "rotateX(" + -tY + "deg) rotateY(" + tX + "deg)";
+    }
+
+    function playSpin(yes) {
+      ospin.style.animationPlayState = yes ? "running" : "paused";
+    }
+
+    var sX,
+      sY,
+      nX,
+      nY,
+      desX = 0,
+      desY = 0,
+      tX = 0,
+      tY = 10;
+
+    if (autoRotate) {
+      var animationName = rotateSpeed > 0 ? "spin" : "spinRevert";
+      ospin.style.animation = `${animationName} ${Math.abs(
+        rotateSpeed
+      )}s infinite linear`;
+    }
+
+    if (bgMusicURL) {
+      document.getElementById("music-container").innerHTML += `
+<audio src="${bgMusicURL}" ${bgMusicControls ? "controls" : ""
+        } autoplay loop>    
+<p>If you are reading this, it is because your browser does not support the audio element.</p>
+</audio>
+`;
+    }
+
+    document.onpointerdown = function (e) {
+      clearInterval(odrag.timer);
+      e = e || window.event;
+      var sX = e.clientX,
+        sY = e.clientY;
+
+      this.onpointermove = function (e) {
+        e = e || window.event;
+        var nX = e.clientX,
+          nY = e.clientY;
+        desX = nX - sX;
+        desY = nY - sY;
+        tX += desX * 0.1;
+        tY += desY * 0.1;
+        applyTranform(odrag);
+        sX = nX;
+        sY = nY;
+      };
+
+      this.onpointerup = function (e) {
+        odrag.timer = setInterval(function () {
+          desX *= 0.95;
+          desY *= 0.95;
+          tX += desX * 0.1;
+          tY += desY * 0.1;
+          applyTranform(odrag);
+          playSpin(false);
+          if (Math.abs(desX) < 0.5 && Math.abs(desY) < 0.5) {
+            clearInterval(odrag.timer);
+            playSpin(true);
+          }
+        }, 17);
+        this.onpointermove = this.onpointerup = null;
+      };
+
+      return false;
+    };
+
+    document.onmousewheel = function (e) {
+      e = e || window.event;
+      var d = e.wheelDelta / 20 || -e.detail;
+      radius += d;
+      init(1);
+    };
+  </script>
+</body>
+
+</html>
